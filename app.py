@@ -23,5 +23,36 @@ def homey():
     return render_template("home.html")
 
 
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+    if request.method == 'POST':
+        print(request.form)
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        con = create_connection(DATABASE)
+        query = 'SELECT id, first_name FROM users WHERE email=? AND password=?'
+        cur = con.cursor()
+        cur.execute(query, (email, password))
+        user_data = cur.fetchall()
+        con.close()
+
+        if user_data:
+            user_id = user_data[0][0]
+            first_name = user_data[0][1]
+            print(user_id, first_name)
+
+            session['email'] = email
+            session['userid'] = user_id
+            session['first_name'] = first_name
+
+            return redirect("/menu")
+
+        else:
+            return redirect("/login?error=Incorrect+username+or+password")
+
+    return render_template("login.html")
+
+
 if __name__ == '__main__':
     app.run()
