@@ -5,7 +5,7 @@ from datetime import datetime
 
 
 app = Flask(__name__)
-DATABASE = "smile.db"
+DATABASE = "C:/Users/18180/OneDrive - Wellington College/13DTS/13DTS/dictionary.db"
 app.secret_key = "rangabanga"
 
 
@@ -52,6 +52,38 @@ def login():
             return redirect("/login?error=Incorrect+username+or+password")
 
     return render_template("login.html")
+
+
+@app.route('/signup', methods=['POST', 'GET'])
+def signup():
+    if request.method == 'POST':
+        print(request.form)
+        first_name = request.form.get('first_name').title().strip()
+        surname = request.form.get('surname').title().strip()
+        email = request.form.get('email')
+        password = request.form.get('password')
+        password2 = request.form.get('confirm_password')
+
+        if password != password2:
+            return redirect("/signup?error=Please+make+password+match")
+
+        if len(password) < 8:
+            return redirect("/signup?error=Please+make+password+at+least+8+characters")
+
+        con = create_connection(DATABASE)
+
+        query = "INSERT INTO users (first_name, surname, email, password) VALUES (?, ?, ?, ?)"
+        cur = con.cursor()
+        cur.execute(query, (first_name, surname, email, password))
+        con.commit()
+        con.close()
+        return redirect("/login")
+
+    error = request.args.get('error')
+    if error == None:
+        error = ""
+
+    return render_template("signup.html", error=error)
 
 
 if __name__ == '__main__':
